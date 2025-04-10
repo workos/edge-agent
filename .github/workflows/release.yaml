@@ -1,4 +1,4 @@
-name: Release Warrant Edge Agent
+name: Release Edge Agent
 
 on:
   push:
