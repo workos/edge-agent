@@ -1,4 +1,4 @@
-name: Build Warrant Edge Agent
+name: Build Edge Agent
 
 on:
   push:
