@@ -1,4 +1,4 @@
-module github.com/warrant-dev/edge
+module github.com/workos/edge-agent
 
 go 1.23
 

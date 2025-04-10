@@ -19,7 +19,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/warrant-dev/edge"
+	"github.com/workos/edge-agent"
 
 	"github.com/spf13/viper"
 )
