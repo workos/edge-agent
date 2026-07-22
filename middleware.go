@@ -15,11 +15,14 @@
 package edge
 
 import (
+	"crypto/subtle"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"time"
+
+	"github.com/warrant-dev/warrant/pkg/service"
 )
 
 type loggingResponseWriter struct {
@@ -34,6 +37,24 @@ func NewLoggingResponseWriter(w http.ResponseWriter) *loggingResponseWriter {
 func (rw *loggingResponseWriter) WriteHeader(code int) {
 	rw.statusCode = code
 	rw.ResponseWriter.WriteHeader(code)
+}
+
+// authMiddleware enforces that inbound requests present the configured API key
+// via an "Authorization: ApiKey <key>" header, matching the WorkOS cloud API.
+// Requests without a valid credential are rejected with 401 before any handler
+// runs. If no API key is configured, the agent fails closed and rejects all
+// requests rather than serving the authorization graph anonymously.
+func authMiddleware(apiKey string, next http.Handler) http.Handler {
+	expected := fmt.Sprintf("ApiKey %s", apiKey)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		provided := r.Header.Get("Authorization")
+		if apiKey == "" || subtle.ConstantTimeCompare([]byte(provided), []byte(expected)) != 1 {
+			service.SendErrorResponse(w, NewUnauthorized())
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {

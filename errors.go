@@ -22,6 +22,7 @@ import (
 
 const (
 	ErrorCacheNotReady = "cache_not_ready"
+	ErrorUnauthorized  = "unauthorized"
 )
 
 // CacheNotReady type
@@ -36,6 +37,22 @@ func NewCacheNotReady() *CacheNotReady {
 			ErrorCacheNotReady,
 			http.StatusServiceUnavailable,
 			"Edge cache not ready",
+		),
+	}
+}
+
+// Unauthorized type
+type Unauthorized struct {
+	*service.GenericError
+}
+
+func NewUnauthorized() *Unauthorized {
+	return &Unauthorized{
+		GenericError: service.NewGenericError(
+			"Unauthorized",
+			ErrorUnauthorized,
+			http.StatusUnauthorized,
+			"Unauthorized",
 		),
 	}
 }

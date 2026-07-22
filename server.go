@@ -147,12 +147,15 @@ func (server *Server) check(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (server *Server) Run() error {
+func (server *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("/health", loggingMiddleware(http.HandlerFunc(server.health)))
-	mux.Handle(fmt.Sprintf("/%s/authorize", ApiVersion), loggingMiddleware(http.HandlerFunc(server.check)))
-	mux.Handle(fmt.Sprintf("/%s/check", ApiVersion), loggingMiddleware(http.HandlerFunc(server.check)))
+	mux.Handle(fmt.Sprintf("/%s/authorize", ApiVersion), loggingMiddleware(authMiddleware(server.config.ApiKey, http.HandlerFunc(server.check))))
+	mux.Handle(fmt.Sprintf("/%s/check", ApiVersion), loggingMiddleware(authMiddleware(server.config.ApiKey, http.HandlerFunc(server.check))))
+	return mux
+}
 
+func (server *Server) Run() error {
 	log.Printf("Edge agent ready to serve authz requests on port %d", server.config.Port)
-	return http.ListenAndServe(fmt.Sprintf(":%d", server.config.Port), mux)
+	return http.ListenAndServe(fmt.Sprintf(":%d", server.config.Port), server.Handler())
 }
